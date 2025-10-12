@@ -1,34 +1,73 @@
-# Gradle files
-.gradle/
-build/
+# === Android/Gradle básicos ===
+# Builds y artefactos
+**/build/
+**/out/
+captures/
 
-# Local configuration file (sdk path, etc)
+# Gradle cache por proyecto
+.gradle/
+**/gradle/build/
+
+# Config local (rutas del SDK/NDK, etc.)
 local.properties
 
-# Log/OS Files
-*.log
+# === Android Studio / IntelliJ ===
+.idea/
+*.iml
 
-# Android Studio generated files and folders
-captures/
+# === APK/AAB y mapeos ===
+*.apk
+*.ap_
+*.aab
+mapping.txt
+**/mapping/
+
+# === NDK / CMake / LLDB ===
 .externalNativeBuild/
 .cxx/
-*.aab
-*.apk
-output-metadata.json
+obj/
+*.o
+*.so
 
-# IntelliJ
-*.iml
-.idea/
-misc.xml
-deploymentTargetDropDown.xml
-render.experimental.xml
+# === Firebase / Google Services (no subas credenciales) ===
+app/google-services.json
+app/src/**/google-services.json
+**/GoogleService-Info.plist
+.firebase/
+crashlytics-build.properties
 
-# Keystore files
+# === Keystores (¡nunca públicos!) ===
 *.jks
 *.keystore
+*.keystore.properties
+keystore.properties
 
-# Google Services (e.g. APIs or Firebase)
-google-services.json
+# === Kotlin KAPT/KSP generados ===
+**/kapt*/
+**/ksp*/
+**/kotlin/**/classes/
 
-# Android Profiling
-*.hprof
+# === Lint / cobertura / reportes ===
+**/reports/
+**/test-results/
+**/androidTest-results/
+**/outputs/code-coverage/
+**/jacoco/
+**/lint/intermediates/
+**/lint/generated/
+**/lint/tmp/
+lint/tmp/
+*.ec
+*.sarif
+
+# === Fastlane (si lo usas) ===
+fastlane/report.xml
+fastlane/Preview.html
+fastlane/screenshots
+fastlane/test_output
+
+# === SO / editores ===
+.DS_Store
+Thumbs.db
+.vscode/
+
