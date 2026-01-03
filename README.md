@@ -1,2 +1,2 @@
-# CursoKotlinUdemy-PrograMovil
-Se utilizara para el desarrollo y aprendizaje de la programación de Aplicaciones para Android con Kotlin, curso de Udemy
+# Home Labs - Repository
+This repository hosts personal projects developed for my portfolio/CV, as well as projects created to learn and experiment with new technologies.
