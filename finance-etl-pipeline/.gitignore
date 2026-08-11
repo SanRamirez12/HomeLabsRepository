@@ -1,0 +1,56 @@
+# --- Python ---
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+dist/
+*.egg-info/
+.eggs/
+
+# --- Entornos virtuales ---
+venv/
+env/
+.venv/
+ENV/
+
+# --- Variables de entorno / secretos ---
+.env
+.env.local
+*.env
+!.env.example
+
+# --- Bases de datos locales ---
+*.db
+*.sqlite3
+pgdata/
+
+# --- dbt ---
+dbt_project/target/
+dbt_project/dbt_packages/
+dbt_project/logs/
+dbt_project/profiles.yml
+
+# --- Jupyter notebooks ---
+.ipynb_checkpoints/
+
+# --- IDEs ---
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# --- Sistema operativo ---
+.DS_Store
+Thumbs.db
+
+# --- Logs ---
+*.log
+logs/
+
+# --- Datos crudos que no queremos versionar ---
+data/raw/
+data/processed/
+*.csv
+!data/sample/*.csv

@@ -1,0 +1,20 @@
+# --- Extracción de datos ---
+yfinance==0.2.54
+requests==2.32.3
+
+# --- Manipulación de datos ---
+pandas==2.2.3
+
+# --- Base de datos ---
+SQLAlchemy==2.0.36
+psycopg2-binary==2.9.10
+
+# --- Configuración / variables de entorno ---
+python-dotenv==1.0.1
+
+# --- dbt (transformación) ---
+dbt-core==1.9.1
+dbt-postgres==1.9.0
+
+# --- Testing (lo usaremos más adelante) ---
+pytest==8.3.4
