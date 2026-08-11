@@ -73,4 +73,4 @@ finance-etl-pipeline/
 
 ## Autor
 
-Santiago Ramírez — parte de [HomeLabsRepository](../)
+Santiago Ramírez 
