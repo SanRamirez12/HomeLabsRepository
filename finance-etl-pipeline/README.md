@@ -57,7 +57,7 @@ finance-etl-pipeline/
 4. Copia `.env.example` a `.env` y completa tus credenciales locales de Postgres
 5. Corre el pipeline:
    ```bash
-   python -m src.main
+   python main.py
    ```
 
 ## Estado del proyecto
@@ -65,8 +65,8 @@ finance-etl-pipeline/
 🚧 En construcción — proyecto de aprendizaje activo.
 
 - [x] Estructura base del repo
-- [ ] Extractor de datos (yfinance)
-- [ ] Loader a PostgreSQL
+- [x] Extractor de datos (yfinance)
+- [x] Loader a PostgreSQL
 - [ ] Modelos de dbt
 - [ ] Automatización con GitHub Actions
 - [ ] Dashboard de visualización
