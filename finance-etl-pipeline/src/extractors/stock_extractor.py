@@ -9,7 +9,7 @@ Este archivo es la implementación REAL del contrato que definimos en
 base_extractor.py -- por eso implementa extract(), que ahí era abstracto.
 """
 
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 import pandas as pd
 import yfinance as yf
@@ -78,7 +78,7 @@ class StockExtractor(BaseExtractor):
             # Agregamos metadata útil: de qué ticker es cada fila,
             # y cuándo se extrajo (importante para auditar el pipeline).
             hist["ticker"] = ticker
-            hist["extracted_at"] = datetime.utcnow()
+            hist["extracted_at"] = datetime.now(timezone.utc)
 
             all_data.append(hist)
 
