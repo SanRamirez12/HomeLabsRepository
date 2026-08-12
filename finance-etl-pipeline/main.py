@@ -11,7 +11,7 @@ solo depende de que ambos cumplan su "contrato" (BaseExtractor.run()
 y PostgresLoader.load()).
 
 Correr con:
-    python -m src.main
+    python main.py
 """
 
 from datetime import datetime, timezone
