@@ -1,0 +1,14 @@
+version: 2
+
+models:
+  - name: daily_returns
+    description: "Retorno diario en porcentaje por ticker, calculado con LAG()"
+    columns:
+      - name: ticker
+        tests:
+          - not_null
+      - name: price_date
+        tests:
+          - not_null
+      - name: daily_return_pct
+        description: "Retorno porcentual respecto al día anterior"

@@ -10,10 +10,17 @@ sources:
         columns:
           - name: id
             description: "Identificador autoincremental de la fila"
+            tests:
+              - unique
+              - not_null
           - name: ticker
             description: "Símbolo bursátil, ej. AAPL, MSFT"
+            tests:
+              - not_null
           - name: date
             description: "Fecha del precio registrado"
+            tests:
+              - not_null
           - name: open
             description: "Precio de apertura"
           - name: high
@@ -22,6 +29,8 @@ sources:
             description: "Precio mínimo del día"
           - name: close
             description: "Precio de cierre"
+            tests:
+              - not_null
           - name: volume
             description: "Volumen de acciones negociadas"
           - name: extracted_at
