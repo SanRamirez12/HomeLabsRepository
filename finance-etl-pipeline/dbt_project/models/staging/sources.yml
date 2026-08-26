@@ -1,0 +1,28 @@
+version: 2
+
+sources:
+  - name: raw
+    description: "Datos crudos cargados directamente por el pipeline de Python (extract + load)"
+    schema: raw
+    tables:
+      - name: stock_prices
+        description: "Precios históricos de acciones, extraídos de Yahoo Finance vía yfinance"
+        columns:
+          - name: id
+            description: "Identificador autoincremental de la fila"
+          - name: ticker
+            description: "Símbolo bursátil, ej. AAPL, MSFT"
+          - name: date
+            description: "Fecha del precio registrado"
+          - name: open
+            description: "Precio de apertura"
+          - name: high
+            description: "Precio máximo del día"
+          - name: low
+            description: "Precio mínimo del día"
+          - name: close
+            description: "Precio de cierre"
+          - name: volume
+            description: "Volumen de acciones negociadas"
+          - name: extracted_at
+            description: "Timestamp de cuándo se extrajo este dato"
