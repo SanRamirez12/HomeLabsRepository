@@ -1,0 +1,14 @@
+version: 2
+
+models:
+  - name: rolling_avg_price
+    description: "Media móvil de 7 días del precio de cierre, por ticker"
+    columns:
+      - name: ticker
+        tests:
+          - not_null
+      - name: price_date
+        tests:
+          - not_null
+      - name: moving_avg_7d
+        description: "Promedio de los últimos 7 días de close_price (o menos, en los primeros días de cada ticker)"
