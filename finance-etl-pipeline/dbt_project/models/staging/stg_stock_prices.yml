@@ -1,0 +1,22 @@
+version: 2
+
+models:
+  - name: stg_stock_prices
+    description: "Datos de precios de acciones, limpios y con nombres de columnas estandarizados"
+    columns:
+      - name: price_id
+        description: "Identificador único de la fila"
+        tests:
+          - unique
+          - not_null
+      - name: ticker
+        description: "Símbolo bursátil"
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['AAPL', 'MSFT', 'GOOGL', 'AMZN', 'TSLA']
+      - name: price_date
+        description: "Fecha del precio"
+        tests:
+          - not_null
