@@ -1,0 +1,51 @@
+name: Daily Stock Data Extract
+
+# Cuándo se dispara este workflow:
+on:
+  # Corre automáticamente según un horario cron (hora UTC, no la tuya local)
+  schedule:
+    # "0 12 * * *" significa: minuto 0, hora 12, todos los días, todos los
+    # meses, todos los días de la semana -> 12:00 UTC = 6:00 AM hora de
+    # Costa Rica (UTC-6). Ajusta la hora si quieres que corra en otro momento.
+    - cron: "0 12 * * *"
+
+  # Permite correrlo manualmente desde la pestaña "Actions" en GitHub,
+  # sin esperar al horario -- muy útil para probar que todo funciona.
+  workflow_dispatch:
+
+jobs:
+  extract-and-load:
+    runs-on: ubuntu-latest
+
+    # Le decimos a GitHub Actions en qué carpeta vivir los comandos,
+    # ya que el workflow está en un subdirectorio del repo, no en la raíz.
+    defaults:
+      run:
+        working-directory: finance-etl-pipeline
+
+    steps:
+      # Paso 1: descarga el código del repo a la máquina virtual
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # Paso 2: instala Python en la máquina virtual
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      # Paso 3: instala las dependencias del proyecto
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      # Paso 4: corre el pipeline completo (extract + load)
+      # Las variables de entorno se inyectan aquí desde los GitHub Secrets
+      # que ya configuraste -- nunca se exponen en los logs.
+      - name: Run pipeline
+        env:
+          DB_HOST: ${{ secrets.DB_HOST }}
+          DB_PORT: ${{ secrets.DB_PORT }}
+          DB_NAME: ${{ secrets.DB_NAME }}
+          DB_USER: ${{ secrets.DB_USER }}
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+        run: python main.py
