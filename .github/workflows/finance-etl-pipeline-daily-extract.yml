@@ -1,4 +1,4 @@
-name: Daily Stock Data Extract
+name: Finance ETL - Daily Extract
 
 # Cuándo se dispara este workflow:
 on:
