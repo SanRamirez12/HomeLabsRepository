@@ -11,7 +11,7 @@ with_previous_close as (
         price_date,
         close_price,
 
-        -- LAG trae el valor de la fila anterior, ordenado por fecha,
+        -- LAGS
         -- particionado por ticker (cada acción calcula su propio "día anterior")
         lag(close_price) over (
             partition by ticker
