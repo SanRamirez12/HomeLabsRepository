@@ -5,14 +5,18 @@ Extractor concreto que hereda de BaseExtractor. Se conecta a Yahoo Finance
 (a través de la librería yfinance) y trae precios históricos de una o
 varias acciones.
 
-Este archivo es la implementación REAL del contrato que definimos en
-base_extractor.py -- por eso implementa extract(), que ahí era abstracto.
+Incluye reintentos con espera (retry + backoff) porque Yahoo Finance aplica
+rate limiting agresivo a IPs compartidas, como las de GitHub Actions --
+sin esto, el pipeline automatizado falla intermitentemente en la nube
+aunque funcione perfecto en una máquina local.
 """
 
-from datetime import datetime, timedelta, timezone
+import time
+from datetime import datetime, timezone
 
 import pandas as pd
 import yfinance as yf
+from yfinance.exceptions import YFRateLimitError
 
 from src.extractors.base_extractor import BaseExtractor
 
@@ -25,29 +29,71 @@ class StockExtractor(BaseExtractor):
     validate() y run() sin tener que reescribirlos.
     """
 
-    def __init__(self, tickers: list[str], period: str = "1mo", interval: str = "1d"):
+    def __init__(
+        self,
+        tickers: list[str],
+        period: str = "1mo",
+        interval: str = "1d",
+        max_retries: int = 3,
+        retry_wait_seconds: int = 15,
+    ):
         """
         Args:
             tickers: lista de símbolos bursátiles, ej. ["AAPL", "MSFT", "GOOGL"]
             period: rango de tiempo a traer. Ej: "1d", "5d", "1mo", "1y", "max"
             interval: granularidad de los datos. Ej: "1d" (diario), "1h" (horario)
+            max_retries: cuántas veces reintentar un ticker si Yahoo devuelve
+                         rate limit, antes de darlo por perdido y continuar
+            retry_wait_seconds: cuántos segundos esperar entre reintentos
         """
-        # super().__init__() llama al constructor de la clase padre
-        # (BaseExtractor), que es quien define self.source_name
         super().__init__(source_name="yahoo_finance")
 
         self.tickers = tickers
         self.period = period
         self.interval = interval
+        self.max_retries = max_retries
+        self.retry_wait_seconds = retry_wait_seconds
+
+    def _download_with_retry(self, ticker: str) -> pd.DataFrame:
+        """
+        Descarga el historial de un ticker, reintentando con espera si
+        Yahoo Finance responde con rate limit (YFRateLimitError).
+
+        Este método es "privado" -- es un detalle interno de cómo
+        StockExtractor maneja la comunicación con la API, no algo que
+        el resto del pipeline necesite saber.
+        """
+        last_error = None
+
+        for attempt in range(1, self.max_retries + 1):
+            try:
+                stock = yf.Ticker(ticker)
+                return stock.history(period=self.period, interval=self.interval)
+
+            except YFRateLimitError as error:
+                last_error = error
+                print(
+                    f"[{self.source_name}] Rate limit en {ticker} "
+                    f"(intento {attempt}/{self.max_retries}). "
+                    f"Esperando {self.retry_wait_seconds}s..."
+                )
+                # No esperamos después del último intento -- si ya
+                # falló la última vez, no tiene caso esperar de más.
+                if attempt < self.max_retries:
+                    time.sleep(self.retry_wait_seconds)
+
+        # Si llegamos aquí, se agotaron los reintentos -- devolvemos un
+        # DataFrame vacío en vez de lanzar el error, así un solo ticker
+        # problemático no tumba todo el pipeline (los demás tickers
+        # que sí funcionaron igual se cargan).
+        print(f"[{self.source_name}] Se agotaron los reintentos para {ticker}: {last_error}")
+        return pd.DataFrame()
 
     def extract(self) -> pd.DataFrame:
         """
-        Implementación real de la extracción. Este método es el que
-        BaseExtractor exigía que existiera (era @abstractmethod ahí).
-
-        Recorre cada ticker, descarga sus datos históricos con yfinance,
-        y los junta todos en un solo DataFrame "largo" (long format),
-        que es la forma más fácil de cargar a una tabla SQL después.
+        Implementación real de la extracción. Recorre cada ticker,
+        descarga sus datos históricos con reintentos automáticos, y los
+        junta todos en un solo DataFrame "largo" (long format).
 
         Returns:
             pd.DataFrame con columnas:
@@ -58,47 +104,32 @@ class StockExtractor(BaseExtractor):
         for ticker in self.tickers:
             print(f"[{self.source_name}] Descargando {ticker}...")
 
-            stock = yf.Ticker(ticker)
-            hist = stock.history(period=self.period, interval=self.interval)
+            hist = self._download_with_retry(ticker)
 
             if hist.empty:
                 print(f"[{self.source_name}] Sin datos para {ticker}, se omite.")
                 continue
 
-            # yfinance devuelve la fecha como índice del DataFrame;
-            # la convertimos en una columna normal para que sea más
-            # fácil de cargar a SQL más adelante.
             hist = hist.reset_index()
-
-            # Normalizamos nombres de columnas a minúsculas y sin espacios,
-            # buena práctica para que luego dbt/SQL no se pelee con
-            # mayúsculas o espacios en los nombres.
             hist.columns = [col.lower().replace(" ", "_") for col in hist.columns]
-
-            # Agregamos metadata útil: de qué ticker es cada fila,
-            # y cuándo se extrajo (importante para auditar el pipeline).
             hist["ticker"] = ticker
             hist["extracted_at"] = datetime.now(timezone.utc)
 
             all_data.append(hist)
 
+            # Pausa breve entre tickers exitosos también -- ayuda a
+            # prevenir que dispares el rate limit desde el principio,
+            # en vez de solo reaccionar después de que ya ocurrió.
+            time.sleep(2)
+
         if not all_data:
-            # Si ningún ticker trajo datos, devolvemos un DataFrame vacío
-            # en vez de None -- así el resto del pipeline no se rompe
-            # esperando un tipo de dato distinto.
             return pd.DataFrame()
 
-        # pd.concat junta todos los DataFrames individuales (uno por
-        # ticker) en uno solo.
         combined_df = pd.concat(all_data, ignore_index=True)
 
         return combined_df
 
 
-# Esto permite correr este archivo solo, directamente, para probarlo
-# rápido sin tener que montar todo el pipeline completo todavía.
-# Se ejecuta SOLO si corres "python stock_extractor.py" directamente,
-# no cuando lo importas desde otro archivo.
 if __name__ == "__main__":
     extractor = StockExtractor(tickers=["AAPL", "MSFT"], period="5d")
     df = extractor.run()

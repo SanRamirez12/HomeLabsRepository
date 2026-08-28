@@ -39,7 +39,7 @@ def run_pipeline() -> None:
 
     try:
         # --- EXTRACT ---
-        extractor = StockExtractor(tickers=TICKERS, period="5d", interval="1d")
+        extractor = StockExtractor(tickers=TICKERS, period="5d", interval="1d", max_retries=5, retry_wait_seconds=30)
         df = extractor.run()
 
         if df.empty:
