@@ -2,7 +2,8 @@
 
 Pipeline de datos financieros que extrae precios de acciones desde Yahoo Finance
 (vía `yfinance`), los carga en PostgreSQL (alojado en Supabase), y los transforma
-con `dbt` para dejarlos listos para análisis o visualización.
+con `dbt` para dejarlos listos para análisis o visualización. Corre de forma
+completamente automatizada todos los días mediante GitHub Actions.
 
 Proyecto de portfolio construido para practicar conceptos de Data Engineering:
 extracción de APIs, diseño orientado a objetos, carga a bases de datos,
@@ -11,9 +12,12 @@ GitHub Actions.
 
 ## Arquitectura
 
-Pipeline por capas (extract → load → transform):
+Pipeline por capas (extract → load → transform), orquestado diariamente por
+GitHub Actions:
 
 ```
+GitHub Actions (cron diario)
+        ↓
 yfinance API  →  Extractor (Python/OOP)  →  Supabase (PostgreSQL)  →  dbt (transform)  →  Analytics-ready tables
 ```
 
@@ -44,6 +48,13 @@ finance-etl-pipeline/
 └── requirements.txt
 ```
 
+**Nota sobre el archivo de workflow:** vive en la raíz del repo
+(`HomeLabsRepository/.github/workflows/finance-etl-daily-extract.yml`), no
+dentro de esta subcarpeta — GitHub Actions solo detecta workflows ubicados en
+la raíz del repositorio. Al ser un monorepo con varios proyectos, el archivo
+lleva el prefijo `finance-etl-` para evitar colisiones de nombres con
+workflows de otros proyectos futuros.
+
 ## Stack tecnológico
 
 | Componente | Herramienta |
@@ -52,7 +63,7 @@ finance-etl-pipeline/
 | Fuente de datos | [yfinance](https://pypi.org/project/yfinance/) (Yahoo Finance, gratis, sin API key) |
 | Base de datos | PostgreSQL, alojado en [Supabase](https://supabase.com) (free tier) |
 | Transformación | dbt Cloud / dbt-core |
-| Automatización | GitHub Actions |
+| Automatización | GitHub Actions (cron diario) |
 | Visualización | *(pendiente — Metabase o Streamlit)* |
 
 ## Modelos de dbt
@@ -66,6 +77,20 @@ finance-etl-pipeline/
 Todos los modelos cuentan con tests de calidad de datos (`unique`, `not_null`,
 `accepted_values`) definidos en sus archivos `.yml` correspondientes, y
 documentación generada automáticamente con `dbt docs generate`.
+
+## Automatización
+
+El pipeline de extracción y carga (`main.py`) corre automáticamente todos los
+días mediante un workflow de GitHub Actions, sin depender de que una máquina
+local esté encendida:
+
+- **Trigger**: cron diario (configurable) + disparo manual (`workflow_dispatch`)
+- **Credenciales**: gestionadas como GitHub Secrets, nunca expuestas en el código
+- **Resiliencia ante rate limiting**: la API de Yahoo Finance aplica límites de
+  solicitudes más agresivos a IPs compartidas como las de los runners de
+  GitHub Actions. El extractor implementa reintentos automáticos con espera
+  (retry + backoff) por ticker, además de una pausa preventiva entre
+  descargas, para manejar esto sin que falle todo el pipeline
 
 ## Cómo correrlo localmente
 
@@ -99,7 +124,7 @@ documentación generada automáticamente con `dbt docs generate`.
 - [x] Loader a PostgreSQL
 - [x] Migración a Supabase (base de datos en la nube)
 - [x] Modelos de dbt (staging + marts, con tests y documentación)
-- [ ] Automatización con GitHub Actions
+- [x] Automatización con GitHub Actions
 - [ ] Dashboard de visualización
 
 ## Autor
