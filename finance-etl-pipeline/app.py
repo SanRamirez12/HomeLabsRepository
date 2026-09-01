@@ -44,7 +44,7 @@ def load_daily_returns() -> pd.DataFrame:
     engine = get_engine()
     query = """
         SELECT ticker, price_date, close_price, daily_return_pct
-        FROM dbt_santiago.daily_returns
+        FROM analytics.daily_returns
         ORDER BY ticker, price_date
     """
     return pd.read_sql(query, engine)
@@ -55,7 +55,7 @@ def load_rolling_avg() -> pd.DataFrame:
     engine = get_engine()
     query = """
         SELECT ticker, price_date, close_price, moving_avg_7d
-        FROM dbt_santiago.rolling_avg_price
+        FROM analytics.rolling_avg_price
         ORDER BY ticker, price_date
     """
     return pd.read_sql(query, engine)
